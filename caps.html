@@ -2,7 +2,8 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Thinking Caps</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Londrina+Solid:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Londrina+Solid:wght@400&display=swap"> 
+<link rel="icon" href="icon.ico" type="image/x-icon">
 <style>
 :root{--paper:#f6eee3;--card:#eee7d7;--soft:#e5decf;--blush:#e5cbba;--tan:#d9bda5;--ink:#1a1a1a;--head:"pesto-fresco","Pesto Fresco","Londrina Solid",Roboto,sans-serif}
 *{box-sizing:border-box}
@@ -35,6 +36,8 @@ html,body{margin:0;height:100%;color:var(--ink);font:700 16px Roboto,system-ui,s
 .round:active{transform:scale(.95)}
 #plus{left:16px;width:80px;height:80px;background:var(--tan);font-size:54px;line-height:1;font-weight:700;padding-bottom:6px}
 #cam{right:16px;width:68px;height:68px;background:var(--card)}
+#music{right:96px;width:68px;height:68px;background:var(--card)}
+#music svg{width:30px;height:30px}
 .tag{position:absolute;z-index:30;font-size:13px;font-weight:700;pointer-events:none}
 #t1{left:16px;bottom:100px}
 /* Three screen shapes. JS sets data-shape from width / height:
@@ -45,6 +48,8 @@ html,body{margin:0;height:100%;color:var(--ink);font:700 16px Roboto,system-ui,s
 [data-shape=wide] #off{right:24px;top:24px;padding:8px 18px;font-size:16px}
 [data-shape=wide] #plus{left:24px;bottom:24px;width:92px;height:92px;font-size:62px}
 [data-shape=wide] #cam{right:24px;bottom:24px;width:80px;height:80px}
+[data-shape=wide] #music{right:116px;bottom:24px;width:80px;height:80px}
+[data-shape=wide] #music svg{width:36px;height:36px}
 [data-shape=wide] #cam svg{width:40px;height:40px}
 [data-shape=wide] #upl{bottom:32px;font-size:16px}
 [data-shape=wide] #t1{left:24px;bottom:124px;font-size:15px}
@@ -55,6 +60,7 @@ html,body{margin:0;height:100%;color:var(--ink);font:700 16px Roboto,system-ui,s
 [data-shape=portrait] #off{position:static;align-self:flex-end;padding:5px 12px;font-size:13px}
 [data-shape=portrait] #plus{left:12px;bottom:12px;width:66px;height:66px;font-size:46px}
 [data-shape=portrait] #cam{right:12px;bottom:12px;width:66px;height:66px}
+[data-shape=portrait] #music{right:86px;bottom:12px;width:66px;height:66px}
 [data-shape=portrait] #upl{bottom:25px;font-size:14px;padding:8px 12px}
 [data-shape=portrait] #t1{left:10px;bottom:82px;font-size:12px}
 .ov{position:fixed;inset:0;z-index:100;background:rgba(26,26,26,.6);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
@@ -81,6 +87,7 @@ input[type=text]{font:inherit;width:100%;padding:9px 12px;border:2px solid var(-
 </style></head>
 <body>
 <video id="bg" src="video/backdrop.mp4" poster="video/backdrop-poster.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
+<audio id="music-audio" src="background_music.mp3" autoplay loop preload="auto"></audio>
 <div id="stage">
   <div id="top">
     <div id="info"><p id="nm">Thinking caps</p><p id="bl">Drag a hat onto the head. Stack as many as you like.</p></div>
@@ -90,6 +97,9 @@ input[type=text]{font:inherit;width:100%;padding:9px 12px;border:2px solid var(-
   <button class="round" id="plus" aria-label="Draw your own thinking cap">+</button>
   <span class="tag" id="t1">Draw your own</span>
   <label class="btn" id="upl" tabindex="0">Use my photo<input type="file" id="up" accept="image/*" hidden></label>
+  <button class="round" id="music" type="button" aria-label="Turn background music on" aria-pressed="false" title="Turn background music on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19 6a9 9 0 0 1 0 12"/><path d="m3 3 18 18" id="music-slash"/></svg>
+  </button>
   <button class="round" id="cam" aria-label="Take a photo">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.8"/></svg>
   </button>
@@ -132,6 +142,31 @@ if(FONT_KIT){const l=document.createElement('link');l.rel='stylesheet';l.href='h
 /* ===== end of editable section ===== */
 
 const $=s=>document.querySelector(s),stage=$('#stage');
+/* Background music: begin after the visitor's first interaction. */
+const music=$('#music-audio'),musicButton=$('#music');
+let musicStarted=false;
+function updateMusicButton(){
+  const on=!music.paused&&!music.muted;
+  $('#music-slash').style.display=on?'none':'block';
+  musicButton.setAttribute('aria-pressed',String(on));
+  musicButton.setAttribute('aria-label',on?'Mute background music':'Turn background music on');
+  musicButton.title=on?'Mute background music':'Turn background music on';
+}
+function startMusic(){
+  if(musicStarted)return;
+  music.muted=false;
+  music.play().then(()=>{musicStarted=true;updateMusicButton()}).catch(()=>{});
+}
+
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#music'))startMusic()});
+document.addEventListener('keydown',e=>{if(!e.target.closest('#music'))startMusic()});
+musicButton.addEventListener('click',()=>{
+  if(music.paused||music.muted){music.muted=false;music.play().then(()=>{musicStarted=true;updateMusicButton()}).catch(()=>updateMusicButton())}
+  else{music.muted=true;updateMusicButton()}
+});
+music.addEventListener('play',updateMusicButton);
+music.addEventListener('pause',updateMusicButton);
+updateMusicButton();
 const svg=(w,h,b)=>'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><g stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`);
 const ART={
  cap:svg(200,140,'<path d="M32 98C32 36 168 36 168 98Z" fill="#c9a58b"/><path d="M100 40V98M64 52Q58 76 58 98M136 52Q142 76 142 98" fill="none" stroke-width="3"/><path d="M28 98H172C192 98 198 108 194 114C160 104 90 102 28 106Z" fill="#a98468"/><circle cx="100" cy="38" r="6" fill="#a98468"/>'),
