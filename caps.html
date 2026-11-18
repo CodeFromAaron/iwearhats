@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thinking Caps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Londrina+Solid:wght@400&display=swap">
+<style>
+:root{--paper:#f6eee3;--card:#eee7d7;--soft:#e5decf;--blush:#e5cbba;--tan:#d9bda5;--ink:#1a1a1a;--head:"pesto-fresco","Pesto Fresco","Londrina Solid",Roboto,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--paper) url(video/backdrop-poster.jpg) center/cover}
+html,body{margin:0;height:100%;color:var(--ink);font:700 16px Roboto,system-ui,sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+[hidden]{display:none!important}
+#stage{position:relative;width:100%;height:100%;min-height:520px;overflow:hidden;user-select:none;-webkit-user-select:none}
+.hat{position:absolute;left:0;top:0;cursor:grab;touch-action:none;z-index:5;filter:drop-shadow(0 6px 5px rgba(26,26,26,.2));will-change:transform}
+.hat img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.hat.snap{transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+.hat.worn{z-index:20}
+.hat.drag{cursor:grabbing;z-index:50;filter:drop-shadow(0 14px 10px rgba(26,26,26,.28))}
+#av{position:absolute;z-index:10;pointer-events:none}
+#av img{position:absolute;display:block}
+#face.photo{border-radius:50%;object-fit:cover;border:4px solid var(--ink)}
+#top{position:absolute;left:0;right:0;top:0;z-index:30;pointer-events:none}
+#info{position:absolute;left:16px;top:16px;width:min(320px,calc(100% - 160px));background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:12px 14px}
+#nm,.card h2{font-family:var(--head);font-weight:400;letter-spacing:.01em;line-height:1.05}
+#nm{font-size:26px;margin:0 0 4px}
+#bl{font-size:14px;line-height:1.4;margin:0}
+.btn{font:inherit;color:var(--ink);cursor:pointer;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:8px 16px;font-weight:700;font-size:15px}
+.btn:hover{background:var(--tan)}
+.btn:focus-visible,.round:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.btn.go{background:var(--tan)}
+.btn.go:hover{background:var(--blush)}
+#off{position:absolute;right:16px;top:16px;padding:6px 14px;font-size:14px;pointer-events:auto}
+#upl{position:absolute;z-index:30;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap}
+.round{position:absolute;z-index:30;bottom:16px;border:2px solid var(--ink);border-radius:50%;cursor:pointer;display:grid;place-items:center;font:inherit;color:var(--ink)}
+.round:active{transform:scale(.95)}
+#plus{left:16px;width:80px;height:80px;background:var(--tan);font-size:54px;line-height:1;font-weight:700;padding-bottom:6px}
+#cam{right:16px;width:68px;height:68px;background:var(--card)}
+.tag{position:absolute;z-index:30;font-size:13px;font-weight:700;pointer-events:none}
+#t1{left:16px;bottom:100px}
+/* Three screen shapes. JS sets data-shape from width / height:
+   portrait (phones) under 0.85, mid (tablets, squarish windows) up to 1.45, wide (computer screens) beyond. */
+[data-shape=wide] #info{left:24px;top:24px;width:360px;padding:16px 18px}
+[data-shape=wide] #nm{font-size:31px}
+[data-shape=wide] #bl{font-size:16px}
+[data-shape=wide] #off{right:24px;top:24px;padding:8px 18px;font-size:16px}
+[data-shape=wide] #plus{left:24px;bottom:24px;width:92px;height:92px;font-size:62px}
+[data-shape=wide] #cam{right:24px;bottom:24px;width:80px;height:80px}
+[data-shape=wide] #cam svg{width:40px;height:40px}
+[data-shape=wide] #upl{bottom:32px;font-size:16px}
+[data-shape=wide] #t1{left:24px;bottom:124px;font-size:15px}
+[data-shape=portrait] #top{display:flex;flex-direction:column;gap:8px;padding:10px 12px}
+[data-shape=portrait] #info{position:static;width:auto;padding:10px 12px}
+[data-shape=portrait] #nm{font-size:22px;margin-bottom:2px}
+[data-shape=portrait] #bl{font-size:13px}
+[data-shape=portrait] #off{position:static;align-self:flex-end;padding:5px 12px;font-size:13px}
+[data-shape=portrait] #plus{left:12px;bottom:12px;width:66px;height:66px;font-size:46px}
+[data-shape=portrait] #cam{right:12px;bottom:12px;width:66px;height:66px}
+[data-shape=portrait] #upl{bottom:25px;font-size:14px;padding:8px 12px}
+[data-shape=portrait] #t1{left:10px;bottom:82px;font-size:12px}
+.ov{position:fixed;inset:0;z-index:100;background:rgba(26,26,26,.6);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:16px;width:min(460px,100%)}
+[data-shape=wide] .card{width:min(600px,100%)}
+[data-shape=wide] #dc{height:clamp(260px,48svh,400px)}
+[data-shape=portrait] .card{width:100%}
+.card h2{margin:0 0 10px;font-size:28px}
+#dc{width:100%;height:clamp(200px,40svh,300px);background:#faf6ee;border:2px dashed var(--ink);border-radius:12px;touch-action:none;cursor:crosshair;display:block}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);cursor:pointer;padding:0}
+.sw.on{outline:3px solid var(--ink);outline-offset:2px}
+.sz{width:38px;height:38px;border-radius:50%;border:2px solid var(--ink);background:var(--card);cursor:pointer;display:grid;place-items:center;padding:0}
+.sz.on{background:var(--tan)}
+.sz i{display:block;background:var(--ink);border-radius:50%}
+input[type=text]{font:inherit;width:100%;padding:9px 12px;border:2px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink)}
+#pw{display:flex;flex-direction:column;align-items:center;gap:14px}
+#pr{width:min(300px,78vw);border:0;box-shadow:0 10px 24px rgba(0,0,0,.35);animation:out .9s cubic-bezier(.2,.9,.3,1) both;transform-origin:top center}
+@keyframes out{from{transform:translateY(-70%) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+#flash{position:fixed;inset:0;background:#fff;z-index:200;pointer-events:none;opacity:0}
+#flash.on{animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#pr{animation:none}#bg{display:none}}
+</style></head>
+<body>
+<video id="bg" src="video/backdrop.mp4" poster="video/backdrop-poster.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
+<div id="stage">
+  <div id="top">
+    <div id="info"><p id="nm">Thinking caps</p><p id="bl">Drag a hat onto the head. Stack as many as you like.</p></div>
+    <button class="btn" id="off">Take hats off</button>
+  </div>
+  <div id="av"><img id="body" alt=""><img id="face" alt="Your avatar"></div>
+  <button class="round" id="plus" aria-label="Draw your own thinking cap">+</button>
+  <span class="tag" id="t1">Draw your own</span>
+  <label class="btn" id="upl" tabindex="0">Use my photo<input type="file" id="up" accept="image/*" hidden></label>
+  <button class="round" id="cam" aria-label="Take a photo">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.8"/></svg>
+  </button>
+</div>
+
+<div class="ov" id="m" hidden><div class="card">
+  <h2>Draw your thinking cap</h2>
+  <canvas id="dc"></canvas>
+  <div class="row" id="sw"></div>
+  <div class="row"><span id="szs" class="row" style="margin:0"></span><button class="btn" id="undo">Undo</button><button class="btn" id="clr">Clear</button></div>
+  <div class="row"><input type="text" id="hn" maxlength="28" placeholder="Name your cap"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" id="cx">Cancel</button><button class="btn go" id="mk">Put it on the stage</button></div>
+</div></div>
+
+<div class="ov" id="c" hidden><div id="pw">
+  <img id="pr" alt="Your photo with your hats on">
+  <div class="row" style="margin:0;justify-content:center">
+    <a class="btn go" id="dl" download="my-thinking-cap.png" style="text-decoration:none">Download</a>
+    <button class="btn" id="sh" hidden>Share</button>
+    <button class="btn" id="again">Try again</button>
+  </div>
+</div></div>
+<div id="flash"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ===== EDIT YOUR HATS HERE =====
+   Each hat points at an image in the hats/ folder (transparent PNG). */
+const HATS=[
+ {name:'The Casual Day',blurb:'Sometimes we need a hat that feels stylish and sentimental. This baseball cap was a gift from a friend.',src:'hats/the-casual-day.png'},
+ {name:'The Show Time',blurb:'Paint your face, put on some dangerously high heels, and put on a show for \u2019em.',src:'hats/the-show-time.png'},
+ {name:'The Trusty Bucket',blurb:'A practical hat. You know what to do when you\u2019re in a bind, because you\u2019ve been trained for this.',src:'hats/the-trusty-bucket.png'},
+ {name:'The Serviceable Cap',blurb:'Hospitality and congeniality. Set your ego aside and get things done. Good service means you get paid, and get home sooner.',src:'hats/the-serviceable-cap.png'},
+ {name:'The Warm and Cuddly',blurb:'Fluffy, warm, and safe. Sometimes we need our thoughts to shield us from the world, and to find comfort in the moment.',src:'hats/the-warm-and-cuddly.png'}
+];
+/* Header font: Pesto Fresco from Adobe Fonts. Paste your web project ID here, e.g. 'abc1dyz'
+   (the part between use.typekit.net/ and .css in the project's stylesheet link). */
+const FONT_KIT='';
+if(FONT_KIT){const l=document.createElement('link');l.rel='stylesheet';l.href='https://use.typekit.net/'+FONT_KIT+'.css';document.head.appendChild(l)}
+/* ===== end of editable section ===== */
+
+const $=s=>document.querySelector(s),stage=$('#stage');
+const svg=(w,h,b)=>'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><g stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`);
+const ART={
+ cap:svg(200,140,'<path d="M32 98C32 36 168 36 168 98Z" fill="#c9a58b"/><path d="M100 40V98M64 52Q58 76 58 98M136 52Q142 76 142 98" fill="none" stroke-width="3"/><path d="M28 98H172C192 98 198 108 194 114C160 104 90 102 28 106Z" fill="#a98468"/><circle cx="100" cy="38" r="6" fill="#a98468"/>'),
+ show:svg(200,140,'<ellipse cx="100" cy="116" rx="80" ry="14" fill="#b9806e"/><path d="M54 116L60 36Q100 24 140 36L146 116Z" fill="#d9a08f"/><path d="M57 92H143V104H56Z" fill="#f6eee3"/><path d="M130 34C150 6 176 8 186 22C172 18 160 26 150 40Z" fill="#f6eee3"/><path d="M78 52l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#f6eee3" stroke-width="2"/>'),
+ bucket:svg(200,140,'<path d="M52 44Q100 30 148 44L154 92H46Z" fill="#d9bda5"/><path d="M46 92H154L192 112Q100 134 8 112Z" fill="#c4a287"/><path d="M52 80H148" fill="none" stroke-width="3" stroke-dasharray="6 6"/><circle cx="72" cy="64" r="3" fill="#1a1a1a"/><circle cx="128" cy="64" r="3" fill="#1a1a1a"/>'),
+ serve:svg(200,140,'<path d="M46 108L58 46H142L154 108Z" fill="#b8735f"/><ellipse cx="100" cy="46" rx="42" ry="9" fill="#c98a76"/><path d="M50 88H150L154 108H46Z" fill="#eee7d7"/><circle cx="100" cy="46" r="5" fill="#eee7d7"/>'),
+ cuddle:svg(200,140,'<path d="M40 100C34 40 166 40 160 100Z" fill="#e5cbba"/><g fill="#f6eee3"><circle cx="50" cy="106" r="14"/><circle cx="76" cy="110" r="14"/><circle cx="102" cy="112" r="14"/><circle cx="128" cy="110" r="14"/><circle cx="152" cy="106" r="14"/><circle cx="100" cy="30" r="20"/></g>')
+};
+const BODY=svg(200,120,'<rect x="82" y="0" width="36" height="50" fill="#e9b98d"/><path d="M0 120C0 64 44 44 82 40Q100 62 118 40C156 44 200 64 200 120Z" fill="#8a6f5c"/>');
+const FACE=svg(100,120,'<ellipse cx="50" cy="60" rx="46" ry="56" fill="#f0c196"/><circle cx="34" cy="54" r="4.5" fill="#1a1a1a"/><circle cx="66" cy="54" r="4.5" fill="#1a1a1a"/><path d="M33 80Q50 96 67 80" fill="none"/><circle cx="24" cy="70" r="7" fill="#ff9d8a" stroke="none" opacity=".7"/><circle cx="76" cy="70" r="7" fill="#ff9d8a" stroke="none" opacity=".7"/>');
+const bodyIm=new Image(),faceIm=new Image();bodyIm.src=BODY;faceIm.src=FACE;
+$('#body').src=BODY;$('#face').src=FACE;
+
+let W,H,A,acx,top0,photo=null,shape="mid",fb=0;const hats=[];let worn=[];
+const TI=()=>shape=="portrait"?$("#top").offsetHeight+8:0;
+const place=h=>h.el.style.transform=`translate(${h.x}px,${h.y}px) rotate(${h.r}deg)`;
+const show=h=>{$('#nm').textContent=h.name;$('#bl').textContent=h.blurb};
+
+function size(h){let w=A*.6,hh=w*h.ratio;if(hh>w*1.1){hh=w*1.1;w=hh/h.ratio}h.w=w;h.h=hh;h.el.style.width=w+'px';h.el.style.height=hh+'px'}
+function stack(){let f=.62,o=[];for(;f>.2;f-=.04){let b=0;o=worn.map((h,i)=>b=i?b-f*h.h:.22*h.h);const l=worn[worn.length-1];if(!l||top0+o[o.length-1]-l.h>8)break}return o}
+function settle(){const o=stack();worn.forEach((h,i)=>{h.x=acx-h.w/2;h.y=top0+o[i]-h.h;h.r=h.tilt;h.el.classList.add('snap','worn');place(h)});$('#t1').hidden=false}
+function layout(){
+  const R=stage.getBoundingClientRect();W=R.width;H=R.height;
+  const r=W/H;shape=r<.85?"portrait":r<1.45?"mid":"wide";document.documentElement.dataset.shape=shape;
+  if(shape=="portrait"){A=Math.max(110,Math.min(220,W*.52,H*.27));fb=92;top0=H-fb-1.24*A-4}
+  else if(shape=="mid"){A=Math.max(110,Math.min(250,W*.4,H*.34));fb=0;top0=H-1.24*A-64}
+  else{A=Math.max(120,Math.min(290,W*.26,H*.38));fb=0;top0=H-1.24*A-74}
+  acx=W/2;
+  const av=$('#av');Object.assign(av.style,{left:acx-A/2+'px',top:top0+'px',width:A+'px',height:1.24*A+'px'});
+  Object.assign($('#body').style,{left:0,top:.64*A+'px',width:A+'px',height:.6*A+'px'});
+  Object.assign($('#face').style,{left:.19*A+'px',top:0,width:.62*A+'px',height:.74*A+'px'});
+  hats.forEach(h=>{size(h);if(h.mode=='float'){h.x=Math.min(h.x,W-h.w);h.y=Math.max(TI(),Math.min(h.y,H-fb-h.h));place(h)}});
+  settle();
+}
+
+function addHat(d,spawn){
+  const im=new Image();im.crossOrigin='anonymous';
+  im.onload=()=>{
+    const el=document.createElement('div');el.className='hat';
+    const i2=new Image();i2.src=im.src;i2.alt=d.name;el.appendChild(i2);stage.appendChild(el);
+    const h={...d,im,el,ratio:im.naturalHeight/im.naturalWidth,mode:'float',tilt:0,lift:false};
+    size(h);
+    h.x=spawn?W/2-h.w/2:Math.random()*(W-h.w);h.y=spawn?TI()+10:TI()+10+Math.random()*Math.max(40,top0-h.h-TI()-10);
+    h.r=(Math.random()-.5)*20;h.vx=(Math.random()<.5?-1:1)*(.2+Math.random()*.4);h.vy=(Math.random()<.5?-1:1)*(.15+Math.random()*.3);h.vr=(Math.random()-.5)*.2;
+    hats.push(h);place(h);wire(h);
+  };
+  im.src=d.src||ART[d.art];
+}
+function wire(h){
+  const el=h.el;let sx,sy;
+  el.addEventListener('pointerenter',e=>{if(e.pointerType=='mouse')show(h)});
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();el.setPointerCapture(e.pointerId);
+    const R=stage.getBoundingClientRect();sx=e.clientX;sy=e.clientY;
+    h.lift=h.mode=='worn';h.mode='drag';h.ox=e.clientX-R.left-h.x;h.oy=e.clientY-R.top-h.y;
+    el.classList.add('drag');if(!h.lift)el.classList.remove('snap','worn');h.r=h.lift?h.r:0;show(h);
+  });
+  el.addEventListener('pointermove',e=>{
+    if(h.mode!='drag')return;
+    if(h.lift){if(Math.hypot(e.clientX-sx,e.clientY-sy)<6)return;h.lift=false;worn=worn.filter(x=>x!==h);el.classList.remove('snap','worn');h.r=0;settle()}
+    const R=stage.getBoundingClientRect();h.x=e.clientX-R.left-h.ox;h.y=e.clientY-R.top-h.oy;place(h);
+  });
+  const up=()=>{
+    if(h.mode!='drag')return;el.classList.remove('drag');
+    if(h.lift){h.lift=false;h.mode='worn';settle();return}
+    const cx=h.x+h.w/2,cy=h.y+h.h/2,o=stack(),l=worn[worn.length-1],topS=top0+(l?o[o.length-1]-l.h:0);
+    if(Math.abs(cx-acx)<A*.75&&cy>topS-140&&cy<top0+A*.7){h.mode='worn';h.tilt=(Math.random()-.5)*8;worn.push(h);settle()}
+    else release(h);
+  };
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+}
+function release(h){h.mode='float';h.el.classList.remove('snap','worn','drag');h.vx=(Math.random()<.5?-1:1)*(.2+Math.random()*.4);h.vy=(Math.random()<.5?-1:1)*(.15+Math.random()*.3);h.x=Math.max(0,Math.min(W-h.w,h.x));h.y=Math.max(TI(),Math.min(H-fb-h.h,h.y));place(h)}
+$('#off').onclick=()=>{worn.slice().forEach(release);worn=[]};
+
+const calm=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;
+(function tick(){
+  const T=TI(),B=H-fb;
+  for(const h of hats)if(h.mode=='float'){
+    h.x+=h.vx*calm;h.y+=h.vy*calm;h.r+=h.vr*calm;
+    if(h.x<0||h.x>W-h.w){h.vx*=-1;h.x=Math.max(0,Math.min(W-h.w,h.x))}
+    if(h.y<T||h.y>B-h.h){h.vy*=-1;h.y=Math.max(T,Math.min(B-h.h,h.y))}
+    place(h);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* photo avatar */
+$('#up').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{photo=im;$('#face').src=im.src;$('#face').classList.add('photo')};im.src=URL.createObjectURL(f)};
+$('#upl').onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();$('#up').click()}};
+
+/* drawing pad: powered by Signature Pad (szimek/signature_pad, MIT) */
+const dc=$('#dc');let pad=null,col='#1a1a1a',brush=[1.6,5.5];
+['#1a1a1a','#b8735f','#d9bda5','#e5cbba','#6b8f71','#4a6fa5','#c9a227','#ffffff'].forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i?'':' on');b.style.background=c;b.setAttribute('aria-label','Colour '+c);b.onclick=()=>{col=c;if(pad)pad.penColor=c;document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===b))};$('#sw').appendChild(b)});
+[[.8,2.6],[1.6,5.5],[3.2,11]].forEach((z,i)=>{const b=document.createElement('button');b.className='sz'+(i==1?' on':'');b.setAttribute('aria-label','Brush size '+(i+1));b.innerHTML='<i style="width:'+(z[1]+4)+'px;height:'+(z[1]+4)+'px"></i>';b.onclick=()=>{brush=z;if(pad){pad.minWidth=z[0];pad.maxWidth=z[1]}document.querySelectorAll('.sz').forEach(x=>x.classList.toggle('on',x===b))};$('#szs').appendChild(b)});
+function fit(){const d=pad.toData(),r=Math.max(devicePixelRatio||1,1);dc.width=dc.offsetWidth*r;dc.height=dc.offsetHeight*r;dc.getContext('2d').scale(r,r);pad.clear();pad.fromData(d)}
+$('#plus').onclick=()=>{
+  if(!window.SignaturePad){alert('The drawing tool could not load. Check your internet connection and refresh the page.');return}
+  $('#m').hidden=false;
+  if(!pad)pad=new SignaturePad(dc,{penColor:col,minWidth:brush[0],maxWidth:brush[1],throttle:8,minDistance:2});
+  fit();
+};
+addEventListener('resize',()=>{if(pad&&!$('#m').hidden)fit()});
+$('#undo').onclick=()=>{if(!pad)return;const d=pad.toData();d.pop();pad.fromData(d)};
+$('#clr').onclick=()=>{if(pad)pad.clear()};
+$('#cx').onclick=()=>$('#m').hidden=true;
+$('#mk').onclick=()=>{
+  if(!pad||pad.isEmpty()){dc.style.borderColor='#b8735f';setTimeout(()=>dc.style.borderColor='',700);return}
+  const x=dc.getContext('2d'),w=dc.width,h=dc.height,d=x.getImageData(0,0,w,h).data;
+  let a=w,b=h,c=-1,e=-1;
+  for(let y=0;y<h;y++)for(let i=0;i<w;i++)if(d[(y*w+i)*4+3]>12){if(i<a)a=i;if(i>c)c=i;if(y<b)b=y;if(y>e)e=y}
+  if(c<0)return;
+  a=Math.max(0,a-6);b=Math.max(0,b-6);c=Math.min(w-1,c+6);e=Math.min(h-1,e+6);
+  const k=document.createElement('canvas');k.width=c-a+1;k.height=e-b+1;k.getContext('2d').drawImage(dc,a,b,k.width,k.height,0,0,k.width,k.height);
+  addHat({name:$('#hn').value.trim()||'My Thinking Cap',blurb:'Drawn by you. Nobody else thinks quite like this.',src:k.toDataURL()},true);
+  pad.clear();$('#hn').value='';$('#m').hidden=true;
+};
+
+/* camera */
+const cover=(x,im,dx,dy,w,h)=>{const r=Math.max(w/im.width,h/im.height),sw=w/r,sh=h/r;x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,dx,dy,w,h)};
+function scene(x,cx,cy,bw,bh){
+  const o=stack();let minY=0;worn.forEach((h,i)=>minY=Math.min(minY,o[i]-h.h));
+  const maxY=1.24*A,wd=Math.max(A,...worn.map(h=>h.w))*1.15,ht=maxY-minY+A*.2,s=Math.min(bw/wd,bh/ht,1.6);
+  x.save();x.translate(cx,cy);x.scale(s,s);x.translate(0,-(minY+maxY)/2);
+  x.drawImage(bodyIm,-A/2,.64*A,A,.6*A);
+  const fw=.62*A,fh=.74*A;
+  if(photo){x.save();x.beginPath();x.ellipse(0,fh/2,fw/2,fh/2,0,0,7);x.clip();cover(x,photo,-fw/2,0,fw,fh);x.restore();x.lineWidth=4;x.strokeStyle='#1a1a1a';x.beginPath();x.ellipse(0,fh/2,fw/2-2,fh/2-2,0,0,7);x.stroke()}
+  else{x.drawImage(faceIm,-fw/2,0,fw,fh);x.lineWidth=4;x.strokeStyle='#1a1a1a';x.beginPath();x.ellipse(0,fh/2,fw/2-2,fh/2-2,0,0,7);x.stroke()}
+  worn.forEach((h,i)=>{x.save();x.translate(0,o[i]-h.h/2);x.rotate(h.tilt*Math.PI/180);x.drawImage(h.im,-h.w/2,-h.h/2,h.w,h.h);x.restore()});
+  x.restore();
+}
+function wrap(x,t,mw){const w=t.split(' '),L=[];let l='';w.forEach(s=>{const n=l?l+' '+s:s;if(x.measureText(n).width>mw&&l){L.push(l);l=s}else l=n});L.push(l);return L}
+function shutter(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),n=a.createBuffer(1,a.sampleRate*.12,a.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=a.createBufferSource();s.buffer=n;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=2200;s.connect(f);f.connect(a.destination);s.start()}catch(e){}}
+async function snap(){
+  const fl=$('#flash');fl.classList.remove('on');void fl.offsetWidth;fl.classList.add('on');shutter();
+  try{await document.fonts.load('700 30px Roboto')}catch(e){}
+  const c=document.createElement('canvas');c.width=600;c.height=760;const x=c.getContext('2d');
+  x.fillStyle='#f6eee3';x.fillRect(0,0,600,760);
+  x.save();x.beginPath();x.rect(40,40,520,520);x.clip();
+  const g=x.createLinearGradient(0,40,0,560);g.addColorStop(0,'#e5decf');g.addColorStop(1,'#e5cbba');x.fillStyle=g;x.fillRect(40,40,520,520);
+  scene(x,300,300,500,480);x.restore();
+  x.fillStyle='#1a1a1a';x.textAlign='center';x.font='700 30px Roboto,sans-serif';
+  if(worn.length){
+    x.fillText('Today I\u2019m thinking in:',300,610);x.font='700 24px Roboto,sans-serif';
+    wrap(x,worn.map(h=>h.name).join(', '),500).slice(0,3).forEach((l,i)=>x.fillText(l,300,650+i*32));
+  }else x.fillText('Bare-headed thinking today.',300,620);
+  let url;try{url=c.toDataURL('image/png')}catch(e){alert('The photo could not be made because a hat image blocks being copied. Host your hat images where cross-site use is allowed, or embed them in the code.');return}
+  setTimeout(()=>{const p=$('#pr');p.style.animation='none';void p.offsetWidth;p.style.animation='';p.src=url;$('#dl').href=url;$('#c').hidden=false},350);
+}
+$('#cam').onclick=snap;$('#again').onclick=()=>$('#c').hidden=true;
+if(navigator.canShare)$('#sh').hidden=false;
+$('#sh').onclick=async()=>{try{const b=await(await fetch($('#pr').src)).blob(),f=new File([b],'my-thinking-cap.png',{type:'image/png'});if(navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'My thinking cap'})}catch(e){}};
+
+layout();HATS.forEach(d=>addHat(d));
+new ResizeObserver(layout).observe(stage);
+</script>
+</body></html>
