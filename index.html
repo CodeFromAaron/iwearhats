@@ -3,7 +3,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>I Wear Hats</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
-  <link rel="icon" href="icon.ico" type="image/x-icon">
 <style>
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -27,6 +26,19 @@ main{min-height:100svh;display:flex;flex-direction:column;align-items:center;jus
 @keyframes nudge{0%,60%,100%{transform:none}76%{transform:translateX(14px)}90%{transform:translateX(0)}}
 @keyframes tick{0%,60%,100%{transform:none}76%{transform:translateX(5px)}90%{transform:none}}
 @media (prefers-reduced-motion:reduce){#bg{display:none}.go span,.go img{animation:none}}
+  
+  /* Signal custom cursor pack */
+@media (hover:hover) and (pointer:fine){
+  body{cursor:url("cursors/arrow-32.png") 1 1, default}
+  button,.btn,.round,a,label[for],.sw,.sz,[role="button"]{
+    cursor:url("cursors/hand-32.png") 11 2, pointer;
+  }
+  .hat{cursor:grab}
+  .hat.drag{cursor:grabbing}
+  #dc{cursor:url("cursors/crosshair-32.png") 16 16, crosshair}
+  #planning-images img{cursor:zoom-in}
+}
+  
 </style></head>
 <body>
 <video id="bg" src="video/backdrop.mp4" poster="video/backdrop-poster.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
