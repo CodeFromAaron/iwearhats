@@ -1,0 +1,104 @@
+/*
+ * Studio Cursor: Signal cursor pack for the web
+ * https://studiocursor.com/cursors/signal/
+ *
+ * CC0 1.0 Universal: free to use, change and share for any purpose, with no
+ * credit needed. https://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * Keep this file next to the PNGs, link it, and add a class:
+ *   <link rel="stylesheet" href="cursors.css">
+ *   <a class="cursor-hand" href="/">Home</a>
+ *
+ * Each rule shows the 32 px PNG with its hotspot (the pixel that does the
+ * clicking) and ends with the CSS keyword browsers fall back to when they
+ * cannot use the image. The 64 px files are the same cursors at twice the
+ * size: use them where you want a bigger cursor, or try them for sharp
+ * screens with image-set(), and test in every browser you support.
+ * Browsers show one frame of an animated cursor, so the busy and working
+ * cursors use their first frame here.
+ */
+
+/* Normal select (Windows role: Arrow) */
+.cursor-arrow {
+  cursor: url("arrow-32.png") 1 1, default;
+}
+
+/* Help select (Windows role: Help) */
+.cursor-help {
+  cursor: url("help-32.png") 1 1, help;
+}
+
+/* Working in background (Windows role: AppStarting) */
+.cursor-appstarting {
+  cursor: url("appstarting-32.png") 1 1, progress;
+}
+
+/* Busy (Windows role: Wait) */
+.cursor-wait {
+  cursor: url("wait-32.png") 16 16, wait;
+}
+
+/* Precision select (Windows role: Crosshair) */
+.cursor-crosshair {
+  cursor: url("crosshair-32.png") 16 16, crosshair;
+}
+
+/* Text select (Windows role: IBeam) */
+.cursor-ibeam {
+  cursor: url("ibeam-32.png") 16 16, text;
+}
+
+/* Handwriting (Windows role: NWPen) */
+.cursor-nwpen {
+  cursor: url("nwpen-32.png") 2 2, default;
+}
+
+/* Unavailable (Windows role: No) */
+.cursor-no {
+  cursor: url("no-32.png") 16 16, not-allowed;
+}
+
+/* Vertical resize (Windows role: SizeNS) */
+.cursor-sizens {
+  cursor: url("sizens-32.png") 16 16, ns-resize;
+}
+
+/* Horizontal resize (Windows role: SizeWE) */
+.cursor-sizewe {
+  cursor: url("sizewe-32.png") 16 16, ew-resize;
+}
+
+/* Diagonal resize 1 (Windows role: SizeNWSE) */
+.cursor-sizenwse {
+  cursor: url("sizenwse-32.png") 16 16, nwse-resize;
+}
+
+/* Diagonal resize 2 (Windows role: SizeNESW) */
+.cursor-sizenesw {
+  cursor: url("sizenesw-32.png") 16 16, nesw-resize;
+}
+
+/* Move (Windows role: SizeAll) */
+.cursor-sizeall {
+  cursor: url("sizeall-32.png") 16 16, move;
+}
+
+/* Alternate select (Windows role: UpArrow) */
+.cursor-uparrow {
+  cursor: url("uparrow-32.png") 16 2, default;
+}
+
+/* Link select (Windows role: Hand) */
+.cursor-hand {
+  cursor: url("hand-32.png") 11 2, pointer;
+}
+
+/* Location select (Windows role: Pin) */
+.cursor-pin {
+  cursor: url("pin-32.png") 1 1, default;
+}
+
+/* Person select (Windows role: Person) */
+.cursor-person {
+  cursor: url("person-32.png") 1 1, default;
+}
